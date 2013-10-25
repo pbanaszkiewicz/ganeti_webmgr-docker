@@ -25,6 +25,9 @@ RUN pip install gunicorn
 # install GWM into that venv
 RUN pip install -e /ganeti_webmgr_src
 
+# create database and such
+#RUN python ganeti_webmgr
+
 # run gunicorn (WSGI server) with GWM
 ENTRYPOINT ["gunicorn", "--bind", "127.0.0.1:8000", \
             "ganeti_webmgr.ganeti_web.wsgi:application"]
