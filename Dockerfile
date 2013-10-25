@@ -12,19 +12,21 @@ RUN echo "deb http://archive.ubuntu.com/ubuntu precise main universe" > /etc/apt
 RUN apt-get update
 
 # install required dependencies
-RUN apt-get install -y python python-dev python-virtualenv git
+RUN apt-get install -y python python-dev python-pip git
 
 # get Ganeti Web Manager from branch 'develop'
-RUN git clone https://github.com/osuosl/ganeti_webmgr.git
-RUN cd ganeti_webmgr
-RUN git checkout develop
-RUN cd -
+RUN git clone https://github.com/osuosl/ganeti_webmgr.git /ganeti_webmgr_src \
+    && cd /ganeti_webmgr_src \
+    && git checkout develop
 
-# set up virtual environment
-RUN virtualenv --setuptools --no-site-packages gwm
-
-# install web server into that venv
-RUN ./gwm/bin/pip install gunicorn
+# install web server (globally)
+RUN pip install gunicorn
 
 # install GWM into that venv
-RUN ./gwm/bin/pip install -e ../ganeti_webmgr
+RUN pip install -e /ganeti_webmgr_src
+
+# run gunicorn (WSGI server) with GWM
+ENTRYPOINT ["gunicorn", "--bind", "127.0.0.1:8000", \
+            "ganeti_webmgr.ganeti_web.wsgi:application"]
+
+EXPOSE 8000
